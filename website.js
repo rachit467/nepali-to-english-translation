@@ -1,62 +1,48 @@
-const translateButton = document.getElementById('translate-button');
-const englishText = document.getElementById('english_text');
-const nepaliText = document.getElementById('nepali_text');
+const nepaliText = document.getElementById("nepali_text");
+const englishText = document.getElementById("english_text");
+const translateButton = document.getElementById("translate-button");
 
-const API_URL = 'your_api_endpoint';
-const HEADERS = { 'Content-Type': 'application/json' };
+translateButton.addEventListener("click", async () => {
+  const input = nepaliText.value.trim();
 
-// Pointer movement handler for dynamic styling
-const syncPointer = ({ x: pointerX, y: pointerY }) => {
-  const x = pointerX.toFixed(2);
-  const y = pointerY.toFixed(2);
-  const xp = (pointerX / window.innerWidth).toFixed(2);
-  const yp = (pointerY / window.innerHeight).toFixed(2);
-  document.documentElement.style.setProperty('--x', x);
-  document.documentElement.style.setProperty('--xp', xp);
-  document.documentElement.style.setProperty('--y', y);
-  document.documentElement.style.setProperty('--yp', yp);
-};
-document.body.addEventListener('pointermove', syncPointer);
-
-translateButton.addEventListener('click', async () => {
-  const textToTranslate = nepaliText.value.trim();
-
-  if (!textToTranslate) {
-    alert('Please enter Nepali text to translate.');
+  if (!input) {
+    alert("Please enter some text to translate.");
     return;
   }
 
   try {
-    translateButton.textContent = 'Translating...';
+    translateButton.textContent = "Translating...";
     translateButton.disabled = true;
 
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: HEADERS,
+    const response = await fetch("https://libretranslate.de/translate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
-        text: textToTranslate,
-        sourceLanguage: 'ne', // Nepali language code
-        targetLanguage: 'en', // English language code
-      }),
+        q: input,
+        source: "ne",
+        target: "en",
+        format: "text"
+      })
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error("Translation service is currently unavailable.");
     }
 
     const data = await response.json();
-    const translatedText = data.translatedText;
 
-    if (translatedText) {
-      englishText.value = translatedText;
+    if (data && data.translatedText) {
+      englishText.value = data.translatedText;
     } else {
-      alert('Translation failed. Please try again later.');
+      alert("Translation failed. Please try again later.");
     }
   } catch (error) {
-    console.error('Error translating text:', error);
-    alert('An error occurred during translation. Please try again later.');
+    console.error("Error:", error);
+    alert("An error occurred during translation. Please try again later.");
   } finally {
-    translateButton.textContent = 'Translate';
+    translateButton.textContent = "Translate";
     translateButton.disabled = false;
   }
 });
